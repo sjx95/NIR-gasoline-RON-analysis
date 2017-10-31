@@ -5,7 +5,7 @@ import numpy as np
 import logging
 
 
-def load(mat_data_path = "NIRExerciseData_Gasoline.mat"):
+def load(mat_data_path="NIRExerciseData_Gasoline.mat"):
     mat_data = scipy.io.loadmat(mat_data_path)
     _nm = mat_data["nm"][0]
     _A = mat_data["A"]
@@ -13,7 +13,7 @@ def load(mat_data_path = "NIRExerciseData_Gasoline.mat"):
     return _nm, _A, _RON
 
 
-def nir_plot(x, y, _title = ''):
+def nir_plot(x, y, _title):
     clf()
     title(_title)
     xlabel("nm")
@@ -21,30 +21,30 @@ def nir_plot(x, y, _title = ''):
     grid()
     for a in y:
         plot(x, a, linewidth=1)
-    logging.info('RAW data image -> "img/'+_title+'.png".')
-    savefig("img/"+_title+".png")
+    logging.info('RAW data image -> "img/' + _title + '.png".')
+    savefig("img/" + _title + ".png")
     return
 
 
-def polyfit_filter(x, y, radius):
+def polyfit_filter(x, y, h):
+    def calc(_x):
+        return coeffs[0] * _x * _x + coeffs[1] * _x + coeffs[2]
+
     __degree = 2
-    def calc(x):
-        return coeffs[0]*x*x+coeffs[1]*x+coeffs[2]
-    coeffs = np.polyfit(x[0:radius * 2], y[0:radius * 2], __degree)
     ret_y = []
-    for i in range(radius):
-        ret_y.append(calc(nm[i]))
-    for i in range(radius, len(x)-radius+1):
-        coeffs = np.polyfit(x[i - radius:i + radius], y[i - radius:i + radius], 2)
-        ret_y.append(calc(nm[i]))
-    coeffs = np.polyfit(x[len(x)- 2 * radius:len(x)], y[len(x) - 2 * radius:len(x)], __degree)
-    for i in range(len(x)-radius+1, len(x)):
+    for i in range(len(x)):
+        l = r = i
+        while (l > 0) & (abs(x[l] - x[i]) < h):
+            l -= 1
+        if abs(x[l] - x[i]) > h:
+            l += 1
+        while (r < len(x) - 1) & (abs(x[r] - x[i]) < h):
+            r += 1
+        if abs(x[l] - x[i]) > h:
+            r -= 1
+        coeffs = np.polyfit(x[l:r], y[l:r], __degree)
         ret_y.append(calc(nm[i]))
     return x, ret_y
-
-
-
-
 
 
 if __name__ == '__main__':
@@ -56,9 +56,6 @@ if __name__ == '__main__':
         _nm, af = polyfit_filter(nm, a, 5)
         Af.append(af)
     nir_plot(nm, Af, "NIR Data (after polyfit filer)")
-
-
-
 
 
 def test():
