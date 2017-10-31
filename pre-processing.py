@@ -2,7 +2,6 @@ from matplotlib.pylab import *
 from svmutil import *
 import scipy.io
 import numpy as np
-import logging
 
 
 def load(mat_data_path="NIRExerciseData_Gasoline.mat"):
@@ -21,7 +20,6 @@ def nir_plot(x, y, _title):
     grid()
     for a in y:
         plot(x, a, linewidth=1)
-    logging.info('RAW data image -> "img/' + _title + '.png".')
     savefig("img/" + _title + ".png")
     return
 
@@ -48,7 +46,6 @@ def polyfit_filter(x, y, h):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
     nm, A, RON = load()
     nir_plot(nm, A, "NIR Data (RAW)")
     Af = []
