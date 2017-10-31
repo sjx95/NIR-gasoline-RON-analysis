@@ -45,6 +45,35 @@ def polyfit_filter(x, y, h):
     return x, ret_y
 
 
+def baseline_correction(x, y, tolerance=0.01):
+    tolerance **= 2
+    xx = x
+    yy = y.copy()
+    while True:
+        f = np.poly1d(np.polyfit(xx, yy, 1))
+        mse = 0
+        for i in range(len(xx)):
+            mse += (f(xx[i])-yy[i])**2
+        mse /= len(xx)
+        if mse <= tolerance:
+            break
+        xxx = []
+        yyy = []
+        for i in range(len(xx)):
+            if yy[i] <= f(xx[i]):
+                xxx.append(xx[i])
+                yyy.append(yy[i])
+            elif (yy[i] - f(xx[i]))**2 <= mse:
+                xxx.append(xx[i])
+                yyy.append(yy[i])
+        xx = xxx
+        yy = yyy
+    ret_y = y.copy()
+    for i in range(len(x)):
+        ret_y[i] = y[i] - f(x[i])
+    return x, ret_y
+
+
 if __name__ == '__main__':
     nm, A, RON = load()
     nir_plot(nm, A, "NIR Data (RAW)")
@@ -53,6 +82,11 @@ if __name__ == '__main__':
         _nm, af = polyfit_filter(nm, a, 5)
         Af.append(af)
     nir_plot(nm, Af, "NIR Data (after polyfit filer)")
+    Afb = []
+    for af in Af:
+        nm, afb = baseline_correction(nm, af, 0.01)
+        Afb.append(afb)
+    nir_plot(nm, Afb, "NIR Data (after baseline correction)")
 
 
 def test():
