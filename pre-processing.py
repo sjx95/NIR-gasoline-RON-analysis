@@ -1,14 +1,14 @@
 from matplotlib.pylab import *
-from svmutil import *
 import scipy.io
 import numpy as np
+import pickle
 
 
 def load(mat_data_path="NIRExerciseData_Gasoline.mat"):
     mat_data = scipy.io.loadmat(mat_data_path)
     _nm = mat_data["nm"][0]
     _A = mat_data["A"]
-    _RON = mat_data["RON"]
+    _RON = list(mat_data["RON"].flatten())
     return _nm, _A, _RON
 
 
@@ -113,20 +113,9 @@ if __name__ == '__main__':
         Ad.append(ad)
     nir_plot(nm, Ad, "NIR Data (after polyfit differentiation)", yl='dA')
 
-
-
-def test():
-    y, x = svm_read_problem('heart_scale')
-    x = []
-    y = []
-    for i in range(-100, 100):
-        x.append({1: i})
-        y.append(i)
-    # x = [{1: 0}, {1: 1}]
-    # y = [0, 1]
-    xx = [{1: 0}, {1: 200}]
-    m = svm_train(y, x, '-s 3 -t 0')
-    p_label, p_acc, p_val = svm_predict([0, 200], xx, m)
-    print(p_label)
-    print(p_acc)
-    print(p_val)
+    output = open('pickle.dat', 'wb')
+    pickle.dump(nm, output)
+    pickle.dump(Afb, output)
+    pickle.dump(Ad, output)
+    pickle.dump(RON, output)
+    output.close()
