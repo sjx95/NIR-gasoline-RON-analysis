@@ -12,15 +12,17 @@ def load(mat_data_path="NIRExerciseData_Gasoline.mat"):
     return _nm, _A, _RON
 
 
-def nir_plot(x, y, _title):
+def nir_plot(x, y, _title, xl='nm', yl='A', _file=None):
     clf()
     title(_title)
-    xlabel("nm")
-    ylabel("A")
+    xlabel(xl)
+    ylabel(yl)
     grid()
     for a in y:
         plot(x, a, linewidth=1)
-    savefig("img/" + _title + ".png")
+    if _file is None:
+        _file = "img/" + _title + ".png"
+    savefig(_file)
     return
 
 
@@ -74,6 +76,24 @@ def baseline_correction(x, y, tolerance=0.01):
     return x, ret_y
 
 
+def polyfit_diff(x, y, h):
+    __degree = 2
+    ret_y = []
+    for i in range(len(x)):
+        l = r = i
+        while (l > 0) & (abs(x[l] - x[i]) < h):
+            l -= 1
+        if abs(x[l] - x[i]) > h:
+            l += 1
+        while (r < len(x) - 1) & (abs(x[r] - x[i]) < h):
+            r += 1
+        if abs(x[l] - x[i]) > h:
+            r -= 1
+        f = np.poly1d(np.polyfit(x[l:r], y[l:r], __degree)).deriv()
+        ret_y.append(f(nm[i]))
+    return x, ret_y
+
+
 if __name__ == '__main__':
     nm, A, RON = load()
     nir_plot(nm, A, "NIR Data (RAW)")
@@ -87,6 +107,12 @@ if __name__ == '__main__':
         nm, afb = baseline_correction(nm, af, 0.01)
         Afb.append(afb)
     nir_plot(nm, Afb, "NIR Data (after baseline correction)")
+    Ad = []
+    for a in A:
+        _nm, ad = polyfit_diff(nm, a, 10)
+        Ad.append(ad)
+    nir_plot(nm, Ad, "NIR Data (after polyfit differentiation)", yl='dA')
+
 
 
 def test():
