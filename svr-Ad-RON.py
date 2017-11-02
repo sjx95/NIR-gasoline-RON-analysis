@@ -3,9 +3,10 @@ from matplotlib.pyplot import *
 from svmutil import *
 import pickle
 import numpy as np
+import os
 
 
-def convert_libsvm(x, selected):
+def convert_libsvm(x):
     _x = []
     aveX = []
     stdX = []
@@ -14,9 +15,8 @@ def convert_libsvm(x, selected):
     for i in range(len(x[0])):
         aveX.append(np.average(x[:, i]))
         stdX.append(np.std(x[:, i]))
-        if selected[i]:
-            for j in range(len(x)):
-                _x[j][i] = (x[j, i] - np.average(x[:, i])) / np.std(x[:, i])
+        for j in range(len(x)):
+            _x[j][i] = (x[j, i] - np.average(x[:, i])) / np.std(x[:, i])
     return _x, aveX, stdX
 
 
@@ -30,52 +30,41 @@ if __name__ == '__main__':
 
     X = np.array(Ad)
     Y = RON.copy()
-    corr = np.corrcoef(Y, X.T)[0, 1:]
-    clf()
-    subplot(2, 1, 1)
-    title('Correlation Analysis')
-    ylabel('dA')
-    for x in X:
-        plot(nm, x)
-    subplot(2, 1, 2)
-    ylabel(r'$\rho_{XY}$')
-    xlabel('nm')
-    plot(nm, corr)
-    # show()
-    savefig('img/Correlation Analysis.png')
-    selected = []
-    for i in range(len(nm)):
-        if abs(corr[i]) > 0:
-            selected.append(True)
-        else:
-            selected.append(False)
 
-    X, aveX, stdX = convert_libsvm(X, selected)
+    X, aveX, stdX = convert_libsvm(X)
     aveY = np.average(Y)
     stdY = np.std(Y)
-    Y = (Y-aveY)/stdY
+    Y = (Y - aveY) / stdY
 
     trainX = []
     trainY = []
     testX = []
     testY = []
     for i in range(len(X)):
-        if random.random() < 0.7:
+        if i % 3:
             trainX.append(X[i])
             trainY.append(Y[i])
         else:
             testX.append(X[i])
             testY.append(Y[i])
 
-    m = svm_train(trainY, trainX, '-s 3 -t 3')
+    m = svm_train(trainY, trainX, '-s 3 -t 3 -c 0.9')
     print('======')
     p_label, p_acc, p_val = svm_predict(testY, testX, m)
     print('======')
-    print(p_acc)
-    print(p_val)
-    print(testY)
-    print(p_label)
+    mse = np.average((np.array(testY)*stdY - np.array(p_label)*stdY)**2)
+    print('MSE = ', mse)
     clf()
-    plot(np.array(testY)*stdY+aveY, '.')
-    plot(np.array(p_label)*stdY+aveY, '*')
-    show()
+    plot(np.array(testY)*stdY+aveY, '.', label='True')
+    plot(np.array(p_label)*stdY+aveY, '*', label='Predict')
+    legend()
+    ylabel("RON")
+    title('SVM model evaluation\n'+r'($MSE = ' + '%.4lf' % mse + r'$)')
+    grid()
+    # show()
+    savefig('img/svm_result.png')
+    print('======')
+    print('True:')
+    print(np.array(testY) * stdY + aveY)
+    print('Predict:')
+    print(np.array(p_label) * stdY + aveY)
