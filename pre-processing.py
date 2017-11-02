@@ -113,9 +113,28 @@ if __name__ == '__main__':
         Ad.append(ad)
     nir_plot(nm, Ad, "NIR Data (after polyfit differentiation)", yl='dA')
 
+    X = np.array(Ad)
+    Y = RON.copy()
+    corr = np.corrcoef(Y, X.T)[0, 1:]
+    clf()
+    subplot(2, 1, 1)
+    title('Correlation Analysis')
+    ylabel('dA')
+    for x in X:
+        plot(nm, x)
+    grid()
+    subplot(2, 1, 2)
+    ylabel(r'$\rho_{XY}$')
+    xlabel('nm')
+    plot(nm, corr)
+    grid()
+    # show()
+    savefig('img/Correlation Analysis.png')
+
     output = open('pickle.dat', 'wb')
     pickle.dump(nm, output)
     pickle.dump(Afb, output)
     pickle.dump(Ad, output)
     pickle.dump(RON, output)
+    pickle.dump(corr, output)
     output.close()
