@@ -1,0 +1,57 @@
+\documentclass[a4paper]{article}
+\usepackage{xeCJK}
+\usepackage{hyperref}
+\usepackage{indentfirst}
+\usepackage{listings}
+\setlength{\parindent}{2em}
+\title{基于支持向量机的汽油辛烷值定量分析}
+\author{FukoMaster}
+\begin{document}
+	\maketitle
+	
+	\begin{abstract}
+		content...
+	\end{abstract}
+	
+	\tableofcontents
+	
+	\section{引言}
+		汽油辛烷值是衡量汽油在气缸内抗爆震燃烧能力的一种指标，其值的高低意味着抗爆性的好坏。汽油在气缸中爆震燃烧时引起气缸温度剧升、汽油燃烧不完全、机器强烈震动，从而使输出功率下降，并容易造成机件受损。
+		
+		目前快速检测汽油辛烷值的方法主要有有红外光谱法、气相色谱法等。近红外光谱法由于成本低廉、速度快、无排放物等优点，逐渐成为车用汽油辛烷值测定的主流技术。然而由于近红外光谱的测量结果维数较多，各维度间具有一定程度的相关性，因此数据的分析处理则较为困难，基本的统计学方法如线性回归、主成分分析等方法效果一般。
+		
+		支持向量机 (Support Vector Machine, SVM) 是 Corinna Cortes 和 Vapnik 等于 1995 年首先提出的，它在解决小样本、非线性及高维模式识别中表现出许多特有的优势，并能够推广应用到函数拟合等其他机器学习问题中。支持向量机能够根据有限的样本信息在模型的复杂性和学习能力之间寻求最佳折中，以求获得较好的适应能力。
+		
+	\section{工作环境}
+		本文使用的软件平台如下：
+		
+		\begin{itemize}
+			\item openSUSE Tumbleweed + Linux Kernel 4.13.9
+			\item Python 3.6 + pip
+			\item libsvm
+			\item Keras + TensorFlow
+		\end{itemize}
+	
+		\subsection{openSUSE Tumbleweed + Linux Kernel 4.13.9}
+			Linux 是一套开源的类 Unix 操作系统，它遵循 POSIX 标准，并具有对多用户、多任务、多线程和多CPU的支持。 
+			openSUSE 则是基于 Linux 的发行版中的一套，其界面较为友好，比较易于使用。
+		\subsection{Python}
+			Python 是一种面向对象的解释型计算机程序设计语言，其源代码和解释器 CPython 遵循 GPL (GNU General Public License) 协议开源。
+			Python 对科学计算具有良好的支持，拥有诸如 NumPy 、 SciPy 、 MatPlotLib 等诸多开源代码库。
+			另外，它还能轻松的调用来自其他语言(比如C)所编写的库，即便于代码复用，还可以提高关键代码的运行速度。
+		\subsection{libsvm}
+			libsvm是台湾大学林智仁 (Lin Chih-Jen) 教授等开发设计的一个简单、易于使用和快速有效的SVM模式识别与回归的软件包，提供了包括C/Java/Python/MATLAB等大量接口，并基于 BSD 协议开源，其代码托管于\url{https://github.com/cjlin1/libsvm}。
+			由于作者未通过PyPI提供包，需要参照手册自行编译并安装。
+		\subsection{Keras + TensorFlow}
+			TensorFlow 最初由 Google 大脑小组的研究员和工程师们开发出来，用于机器学习和深度神经网络方面的研究，但这个系统的通用性使其也可广泛用于其他计算领域。它灵活的架构让你可以在多种平台上展开计算，例如台式计算机中的一个或多个CPU（或GPU），服务器，移动设备等等。
+			
+			Keras 是一个高层神经网络 API ， Keras 由纯 Python 编写而成并基于 Tensorflow 、 Theano 以及 CNTK 后端。Keras 为支持快速实验而生，能够把你的idea迅速转换为结果，具有高度模块化，极简，和可扩充特性，非常适合于简易和快速的原型设计。
+	\section{数据预处理}
+		\subsection{滤波}
+		\subsection{基线矫正}
+		\subsection{微分}
+		\subsection{相关性分析}
+	\section{支持向量回归}
+	\section{卷积神经网络}
+	\section{总结}
+\end{document}
