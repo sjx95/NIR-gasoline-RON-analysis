@@ -96,22 +96,22 @@ def polyfit_diff(x, y, h):
 
 if __name__ == '__main__':
     nm, A, RON = load()
-    nir_plot(nm, A, "NIR Data (RAW)")
+    nir_plot(nm, A, "NIR Data (RAW)", _file="img/raw.png")
     Af = []
     for a in A:
         _nm, af = polyfit_filter(nm, a, 5)
         Af.append(af)
-    nir_plot(nm, Af, "NIR Data (after polyfit filer)")
+    nir_plot(nm, Af, "NIR Data (after polyfit filter)", _file="img/filter.png")
     Afb = []
     for af in Af:
         nm, afb = baseline_correction(nm, af, 0.01)
         Afb.append(afb)
-    nir_plot(nm, Afb, "NIR Data (after baseline correction)")
+    nir_plot(nm, Afb, "NIR Data (after baseline correction)", _file="img/baseline.png")
     Ad = []
     for a in A:
         _nm, ad = polyfit_diff(nm, a, 10)
         Ad.append(ad)
-    nir_plot(nm, Ad, "NIR Data (after polyfit differentiation)", yl='dA')
+    nir_plot(nm, Ad, "NIR Data (after polyfit differentiation)", yl='dA', _file="img/diff.png")
 
     X = np.array(Ad)
     Y = RON.copy()
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     plot(nm, corr)
     grid()
     # show()
-    savefig('img/Correlation Analysis.png')
+    savefig('img/correlation.png')
 
     output = open('pickle.dat', 'wb')
     pickle.dump(nm, output)
