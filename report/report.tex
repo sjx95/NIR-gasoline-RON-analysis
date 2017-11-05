@@ -5,14 +5,18 @@
 \usepackage{listings}
 \usepackage{graphicx}
 \usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
 \setlength{\parindent}{2em}
-\title{基于支持向量机的汽油辛烷值定量分析}
+\title{基于支持向量机与卷积神经网络的\\汽油辛烷值定量分析}
 \author{FukoMaster}
 \begin{document}
 	\maketitle
 	
 	\begin{abstract}
-		content...
+		本文简要介绍了支持向量机与卷积神经网络的工作原理，然后对实验数据进行了必要的预处理，并使用支持向量回归和卷积神经网络两种方法构建了光谱与辛烷值之间的模型，并对两者的结果进行了评价与分析。
+		其中支持向量机的回归误差复相关系数达到了 $R^2=0.9746$ ，而卷积神经网络则达到了 $R^2=0.9921$，均优于主成分回归等大部分统计学方法。
+		作为两种通用的模型，这两者均较好的解决了近红外光谱的分析问题，达到了较为满意的精度。
 	\end{abstract}
 	
 	\tableofcontents
@@ -23,9 +27,10 @@
 		目前快速检测汽油辛烷值的方法主要有有红外光谱法、气相色谱法等。近红外光谱法由于成本低廉、速度快、无排放物等优点，逐渐成为车用汽油辛烷值测定的主流技术。然而由于近红外光谱的测量结果维数较多，各维度间具有一定程度的相关性，因此数据的分析处理则较为困难，基本的统计学方法如线性回归、主成分分析等效果一般。
 		
 		支持向量机 (Support Vector Machine, SVM) 是 Corinna Cortes 和 Vapnik 等于 1995 年首先提出的，它在解决小样本、非线性及高维模式识别中表现出许多特有的优势，并能够推广应用到函数拟合等其他机器学习问题中。支持向量机能够根据有限的样本信息在模型的复杂性和学习能力之间寻求最佳折中，以求获得较好的适应能力。
+		LeNet 结构的卷积神经网络模型在 1986 年被提出，用于解决手写字体识别的问题。随后，各种结构的卷积神经网络被提出，用于解决各种图像分类问题。由近红外光谱的原理决定了近红外数据和图像数据在特征上具有一定的相似性，因此卷积神经网络也应当可以用于光谱分析。
 		
 	\section{工作环境}
-		本文使用的软件平台如下：
+		\noindent 本文使用的软件平台如下：
 		
 		\begin{itemize}
 			\item openSUSE Tumbleweed + Linux Kernel 4.13.9
@@ -148,7 +153,7 @@
 		\subsection{相关性分析}
 			相关性分析用于考察光谱信息与待测参数的相关程度。若光谱各频率与待测参数的相关性均非常低，那么无论使用什么算法，通过分析光谱数据来获得待测参数都会非常困难。
 			
-			取每一个波长的数据，根据公式\eqref{equ:correlation}计算该波长上数据的相关性，其结果如图\ref{fig:correlation}所示。可以看到，在许多波长上，吸光度的一阶微分与待测参数的相关性显著，甚至在 1220nm 附近达到了 1 ，因此可以认为通过光谱来测量待测参数是可行的。
+			取每一个波长的数据，根据公式\eqref{equ:correlation}计算该波长上数据的相关性，其结果如图\ref{fig:correlation}所示。可以看到，在许多波长上，吸光度的一阶微分与待测参数的相关性显著，在 1220nm 附近甚至达到了 1 ，因此可以认为通过光谱来测量待测参数是可行的。
 			
 			\begin{equation}\label{equ:correlation}
 				\rho_{XY} = \frac{Cov(X, Y)}{\sqrt{D(X)D(Y)}}
@@ -160,10 +165,138 @@
 				\label{fig:correlation}
 			\end{figure}
 			
-	\section{支持向量回归}
-		支持向量机是用来解决二分类问题的一种模型，其基本思想是利用核函数，将线性不可分的数据集映射到高维空间，然后在高维空间中寻找一个超平面，使得数据集线性可分。
+	\section{支持向量机}
+		\subsection{相关理论}
+			支持向量机是用来解决二分类问题的一种模型，其中线性支持向量分类机用于处理线性可分问题，或在一定的允许误差下处理线性近似可分问题。线性支持向量分类机的核心思想在于寻找间隔最大的两张平行的超平面，使得两类样本各自分居在两张超平面的两侧，此时选取与这两张超平面距离相等且平行的一张超平面，即可将样本妥善的划分开来。而支持向量则指的是数据集中支撑起两张超平面的那些样本点，对于一个确定的数据集，其超平面的划分则只与支持向量有关，与非支持向量无关。
+			
+			为了处理线性近似可分的问题，可以适当放宽线性支持向量机构造超平面时的约束条件，即允许某些样本点越过超平面。假定每个样本点越过相应超平面的距离为 $\xi_i \geqslant 0$ ，那么总存在一个足够大的 $\xi_i$ ，使得某一满足约束条件的超平面划分存在。但是，显然应该避免 $\xi_i$取得太大，因此需要在目标函数中引入 $\sum\left(\xi_i\right)$ 作为惩罚。这样，线性支持向量机就可以被推广到解决近似线性可分的问题上。
+			
+			然而，对于有些分类问题明显不宜采用线性划分。
+			如图\ref{fig:unlinear-dataset}所示落在 $R^2$ 空间上的数据集，理想的划分曲线应当为一个圆，若使用线性支持向量分类机，误差则会变得不可接受。
+			由此引出了非线性支持向量分类机，其核心思想是寻找一个核函数，将线性不可分的数据集从原始空间映射到高维空间，使其变得线性可分。
+			这样就可以继续使用线性支持向量分类机的方法，对数据集进行分类了。
+			
+			\begin{figure}
+				\centering
+				\includegraphics[width=0.5\linewidth]{img/线性不可分数据集}
+				\caption{线性不可分数据集}
+				\label{fig:unlinear-dataset}
+			\end{figure}
+			
+			更进一步地，如果在映射的过程中，人为的在被映射到的高维空间中增加带测参数的维度，那么可以将支持向量分类机转换为支持向量回归机。原本的优化目标，即寻找最大间隔超平面，也就转变成了在新的高维空间中寻找一个超平面，使其距离各样本点的距离最小。这样，支持向量机除了可以解决分类问题，也就可以解决回归问题了。
+			
+		\subsection{实现方法}
+			这里选用支持向量机的libsvm实现的Python接口。该接口主要提供了以下几个函数：
+			\begin{itemize}
+				\item svm\_train: 用于训练模型，其中参数由字符串的形式传入；
+				\item svm\_predict: 用于预测数据，如果给出真值还可以评估模型效果；
+				\item svm\_save\_model: 用于保存模型；
+				\item svm\_load\_model: 用于加载模型。
+			\end{itemize}
+			其中， svm\_train 能够调整的主要参数有：
+			\begin{itemize}\setlength{\itemsep}{0pt}
+				\item -s svm\_type : 设置 SVM 类型 (default 0)
+				\subitem 0 -- C-SVC		(多分类)
+				\subitem 1 -- nu-SVC	(多分类)
+				\subitem 2 -- 一分类 SVM
+				\subitem 3 -- epsilon-SVR	(回归)
+				\subitem 4 -- nu-SVR		(回归)
+				\item -t kernel\_type : 设置核函数类型 (default 2)
+				\subitem 0 -- 线性: $u'*v$
+				\subitem 1 -- 多项式: $(\gamma * u' * v + coef0)^{degree}$
+				\subitem 2 -- 径向基函数: $e^{-\gamma * \left|u-v\right|^2}$
+				\subitem 3 -- sigmoid 函数: $\tanh(\gamma * u' * v+coef0)$
+				\item -c cost : 设置 C-SVC、 epsilon-SVR 和 nu-SVR 的惩罚系数 (default 1)
+			\end{itemize}
+
+			显然，这里应选择 epsilon-SVR ，而核函数类型和惩罚系数还需要进行一些尝试才能选出一个较好的值。
+			
+		\subsection{训练结果与分析}
+			由于支持向量机需要在进行训练和处理前对数据进行标准化，因此使用公式\eqref{equ:standard}对各维度进行标准化。然后再按照 libsvm 的格式要求，将输入数据由二维数组转换为字典列表的格式。为了防止模型过拟合，还需要将30条数据按 $2:1$ 划分为训练集和测试集，训练集用来训练模型，测试集用来检测训练效果。
+			
+			\begin{equation}\label{equ:standard}
+				z = \frac{x - \mu}{\sigma}
+			\end{equation}
+			
+			随后需要确定一个合适的核函数，这里分别尝试了四种核函数，使用默认参数进行训练，训练结果如图\ref{fig:svm_result_t}所示。
+			
+			由于Sigmoid核函数的效果最好，这里选择 Sigmoid 核函数并进一步调整惩罚系数。不同惩罚系数下的训练结果如图\ref{fig:svm_result_c}所示。当惩罚系数 $c = 1.6$时，模型的预测效果最好，其回归标准误差为0.4835，回归误差复相关系数为0.9746，与主成分回归效果相当。
+			
+			各模型的评价指标汇总如表\ref{table:svr_result}所示。考虑到监督学习模型中，模型的精确度一定程度上依赖于训练数据量，而这里能拿到的近红外光谱数据只有30条，如果能够拿到更多的数据，模型的准确度理应还存在一定的提升空间。
+			
+			\begin{figure}
+				\begin{minipage}{\linewidth}
+					\includegraphics[width=0.5\linewidth]{../img/svm_result_t0}
+					\includegraphics[width=0.5\linewidth]{../img/svm_result_t1}
+					\includegraphics[width=0.5\linewidth]{../img/svm_result_t2}
+					\includegraphics[width=0.5\linewidth]{../img/svm_result_t3}
+				\end{minipage}
+				\caption{各类核函数训练结果}
+				\label{fig:svm_result_t}
+			\end{figure}
 		
-		
+			
+			\begin{figure}
+				\begin{minipage}{\linewidth}
+					\includegraphics[width=0.5\linewidth]{../img/svm_result_t3_c0_8}
+					\includegraphics[width=0.5\linewidth]{../img/svm_result_t3_c1_2}
+					\includegraphics[width=0.5\linewidth]{../img/svm_result_t3_c1_6}
+					\includegraphics[width=0.5\linewidth]{../img/svm_result_t3_c2}
+				\end{minipage}
+				\caption{各惩罚系数下的训练结果}
+				\label{fig:svm_result_c}
+			\end{figure}
+			
+			\begin{table}
+				\caption{SVM训练结果汇总}
+				\label{table:svr_result}
+				\small
+				\centering
+				\begin{tabular}{r|c|c|c|c|c|c|c|c}
+					\hline
+					\footnotesize 核函数&\footnotesize 线性&\footnotesize 多项式&\footnotesize 径向基&\multicolumn{5}{c}{Sigmoid} \\
+					\hline
+					\footnotesize 惩罚系数&\multicolumn{4}{c|}{$c = 1$}&0.8&1.2&1.6&2\\
+					\hline
+					SEC&0.6540&1.1182&0.8978&0.5905&0.6306&0.5104&0.4835&0.6488\\
+					$R^2$&0.9536&0.8643&0.9126&0.9622&0.9569&0.9717&0.9746&0.9543\\
+					\hline
+				\end{tabular}
+			\end{table}
+
 	\section{卷积神经网络}
+		卷积神经网络 (Convolutional Neural Network, CNN) 是一种前馈神经网络，常被用在处理图像数据的神经网络中。相比于 BP 神经网络，针对图像数据相邻像素点间具有关联性这一特征， CNN 增加了卷积层和池化层，用于提取相邻像素点间的关联并降低网络的总特征数。
+		在光谱数据处理中，由于样品在相邻波长的响应也具有关联性，因此卷积神经网络也应当适用于光谱分析。
+		
+		\subsection{网络结构}
+			理论上，只要特征数目足够多，神经网络在大量数据下都会具有较好的表现。然而在实际情况下，结构不佳的神经网络，很可能会由于训练数据不足导致效果不佳，也有可能会落入局部最优解，甚至有可能无法收敛。因此，安排一个合理的网络结构是很重要的。
+			
+			这里参考 LeNet 的网络结构，首先进行了4次卷积+池化操作，然后经过全连接层到达输出层。其中，激活函数选用了 ReLu ，损失函数选用了 MSE ，优化器选用了 Adam 。为了防止模型过拟合，当精度经过连续数轮训练没有改善时，还要及时提前停止训练。整个网络的结构如下：
+			
+			\lstinputlisting[basicstyle=\fontsize{8.8pt}{9.8pt}\selectfont]{../cnn-model.txt}
+				
+
+		\subsection{训练结果与分析}
+			为了提高拟合速度，在开始训练前，需要使用公式\eqref{equ:standard}对每条光谱数据进行标准化。随后按照 TensorFlow 的格式，将输入数据组织为数组的形式。
+			为了防止模型过拟合，还需要将 30 条数据按 $2:1$ 划分为训练集和测试集，训练集用来训练模型，测试集用来检测训练效果。
+			
+			相比于 SVM ， CNN 的结构更复杂，参数也更多，因此训练需要的迭代次数也更多，训练时间也更长。另外， CNN 的训练方法也意味着训练结果具有一定程度的随机性，可能需要多尝试几次才能拿到比较好的模型。
+			
+			最终模型的较差检验结果如图\ref{fig:cnnresult}所示，其回归标准误差为0.2694，回归误差复相关系数为0.9921，优于主成分回归和支持向量回归，但与主元数较多时的偏最小二乘回归还有一定的差距。
+			
+			\begin{figure}
+				\centering
+				\includegraphics[width=\linewidth]{../img/cnn_result}
+				\caption{CNN训练结果}
+				\label{fig:cnnresult}
+			\end{figure}
+			
+			一般来说，神经网络需要比支持向量回归更多的训练数据，然而这里 CNN 的表现却比支持向量回归更好。这可能是由于 CNN 的卷积层相比于全连接层，能够更加有效的提取光谱的特征，大幅降低了神经网络中的参数量，使得少量数据就能够提取到特征。另外从原理上来看，相比于 SVM ，CNN 的塑性也更好。
+			
 	\section{总结}
+		本文首先对获取的实验数据进行了必要的预处理，然后尝试使用了支持向量回归和卷积神经网络两种方法来构建光谱与辛烷值之间的模型，并对两者的结果进行了对比分析。支持向量机与卷积神经网络作为两种通用的模型，均较好的解决近红外光谱的分析问题，不仅达到了较为满意的精度，在继续加大数据量的同时，还有着进一步提升的空间。
+		
+		然而需要注意的是，作为通用的代价，训练这两种模型均需要大量的数据。由于本文仅使用了某一台仪器某一品牌油品测出数据的一部分作为训练集，尽管在作为测试集的另一部分上预测结果不错，但拿到另一台仪器或者测试另一品牌油品时是否可靠还有待验证。而且神经网络模型相较于统计模型，其内部联系非常复杂，误差的追溯甚至难以进行，也难以给出有效的机理分析。
+		不过也正是因为这种通用性，在应用环境发生变化时，无需重新进行统计分析，只需要在原来模型的基础上，追加新的训练数据即可重新达到原有精度。
+		
 \end{document}
