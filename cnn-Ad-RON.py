@@ -68,19 +68,21 @@ early_stopping = EarlyStopping(monitor='loss', patience=100)
 model.fit(trainX, trainY, verbose=0, epochs=8888, callbacks=[early_stopping])
 
 loss = model.evaluate(testX, testY, verbose=0)
-result = model.predict(testX)
-mse = np.average((testY * stdY - result.flatten() * stdY) ** 2)
-print('======')
-print('MSE =', mse)
+result = model.predict(testX).flatten()
+sec = (np.sum((np.array(testY) * stdY - np.array(result) * stdY) ** 2) / (len(testY) - 1)) ** 0.5
+__tmp = (np.sum((np.array(testY) * stdY) ** 2) / (len(testY) - 1)) ** 0.5
+R2 = 1 - (sec / __tmp) ** 2
+
 print('======')
 print('True:')
 print(testY)
 print('Predict:')
-print(result.flatten())
-plot(testY * stdY + aveY, (result.flatten() * stdY + aveY), 'o')
+print(result)
+plot(testY * stdY + aveY, (result * stdY + aveY), 'o')
 plot([90, 98], [90, 98], '--')
 grid()
-title('CNN model evaluation\n(' + r'$RMSE = ' + '%.4lf' % mse ** 0.5 + r'$)')
+title('CNN model evaluation\n' + r'($SEC = ' + '%.4lf' % sec + '$, $R^2 = %.4lf$)' % R2)
+
 ylabel('Predict')
 xlabel('True')
 # show()
