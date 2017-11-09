@@ -23,15 +23,17 @@
 		\maketitle
 	\end{frame}
 	\begin{frame}{摘要}
-		本文简要介绍了支持向量机与卷积神经网络的工作原理，然后对实验数据进行了必要的预处理，并使用支持向量回归和卷积神经网络两种方法构建了光谱与辛烷值之间的模型，并对两者的结果进行了评价与分析。
-		其中支持向量机的回归误差复相关系数达到了 $R^2=0.9746$ ，而卷积神经网络则达到了 $R^2=0.9921$，均优于主成分回归等大部分统计学方法。
+		这里简要介绍了支持向量机与卷积神经网络的工作原理，然后对实验数据进行了必要的预处理，并使用支持向量回归和卷积神经网络两种方法构建了光谱与辛烷值之间的模型，并对两者的结果进行了评价与分析。
+		
+		
+		\bigskip 其中支持向量机的回归误差复相关系数达到了 $R^2=0.9746$ ，而卷积神经网络则达到了 $R^2=0.9921$，均优于主成分回归等大部分统计学方法。
 		作为两种通用的模型，这两者均较好的解决了近红外光谱的分析问题，达到了较为满意的精度。
 	\end{frame}
 	
 	\begin{frame}{目录}
 		\tableofcontents
 	\end{frame}
-	
+	\section{引言}
 	\begin{frame}{引言}
 		\begin{block}{参数意义}
 			汽油在气缸中爆震燃烧时燃烧不完全、震动强烈，容易造成机件受损。
@@ -47,8 +49,6 @@
 			NIR测量结果维数较多，各维度间具有一定程度的相关性，数据的分析处理则较为困难，基本的统计学方法如线性回归、主成分分析等效果一般。
 		\end{block}
 	\end{frame}
-		
-	\section{工作环境}
 	\begin{frame}{工作环境}
 		\noindent 本文使用的软件平台如下：
 		\begin{itemize}
@@ -126,7 +126,7 @@
 	\end{frame}
 			
 	\section{支持向量机}
-	\begin{frame}{理论介绍}
+	\begin{frame}{支持向量机}{理论介绍}
 		\begin{block}{适用场景}
 			用来解决二分类问题的一种模型，也可以扩展到多分类、回归问题。
 		\end{block}
@@ -143,13 +143,13 @@
 			\end{itemize}
 		\end{block}
 	\end{frame}
-	\begin{frame}{理论介绍}
+	\begin{frame}{支持向量机}{理论介绍}
 		\begin{figure}[h]
 			\centering
 			\includegraphics[width=\linewidth]{img/线性不可分到线性可分}
 		\end{figure}
 	\end{frame}
-	\begin{frame}{理论介绍}
+	\begin{frame}{支持向量机}{理论介绍}
 		\begin{columns}
 			\column{0.4\linewidth}
 			\begin{block}{支持向量回归}
@@ -162,7 +162,7 @@
 			\includegraphics[width=\linewidth]{img/SVR}
 		\end{columns}
 	\end{frame}
-	\begin{frame}{实现方法}
+	\begin{frame}{支持向量机}{实现方法}
 		这里选用支持向量机的libsvm实现，使用它的的Python接口。该接口主要提供了以下几个函数：
 		\begin{itemize}
 			\item svm\_train: 用于训练模型，其中参数由字符串的形式传入；
@@ -192,7 +192,7 @@
 			\item -c cost : 设置 C-SVC、 epsilon-SVR 和 nu-SVR 的惩罚系数 (default 1)
 		\end{itemize}
 	\end{frame}
-	\begin{frame}{训练与结果}
+	\begin{frame}{支持向量机}{训练与结果}
 		\begin{block}{步骤}
 			\begin{enumerate}
 				\item 对各维度进行标准化；
@@ -201,7 +201,7 @@
 				\item 选择核函数与参数，训练，交叉检验。
 			\end{enumerate}
 		\end{block}
-		\begin{block}{核函数比较}
+		\begin{block}{支持向量机}{核函数比较}
 			\scalebox{0.87}{
 			\begin{tabular}{r|c|c|c|c|c|c|c|c}
 				\hline
@@ -233,21 +233,54 @@
 		\end{minipage}
 	\end{frame}			
 	\section{卷积神经网络}
-	\begin{frame}{卷积神经网络}
-		卷积神经网络 (Convolutional Neural Network, CNN) 是一种前馈神经网络，常被用在处理图像数据的神经网络中。
-		相比于 BP 神经网络，针对图像数据相邻像素点间具有关联性这一特征， CNN 增加了卷积层和池化层，用于提取相邻像素点间的关联并降低网络的总特征数。
-		在光谱数据处理中，由于样品在相邻波长的响应也具有关联性，因此卷积神经网络也应当适用于光谱分析。
+	\begin{frame}{卷积神经网络 (Convolutional Neural Network, CNN)}
+		\begin{block}{特点}
+			\begin{itemize}
+				\item CNN 是一种前馈神经网络，常用于处理图像数据。
+				\item 图像数据相邻像素点间具有关联性；
+				\item 使用卷积层和池化层，用于提取相邻像素点间的关联；
+				\item 相比于全连接层，网络的总参数量降低。
+			\end{itemize}
+		\end{block}
+		\begin{block}{适用性}
+			在光谱数据处理中，由于样品在相邻波长的响应也具有关联性，因此 CNN 也应当适用于光谱分析。
+		\end{block}
 	\end{frame}
-	\begin{frame}
-			理论上，只要特征数目足够多，神经网络在大量数据下都会具有较好的表现。然而在实际情况下，结构不佳的神经网络，很可能会由于训练数据不足导致效果不佳，也有可能会落入局部最优解，甚至有可能无法收敛。因此，安排一个合理的网络结构是很重要的。
-			
-			这里参考 LeNet 的网络结构，首先进行了4次卷积+池化操作，然后经过全连接层到达输出层。其中，激活函数选用了 ReLu ，损失函数选用了 MSE ，优化器选用了 Adam 。为了防止模型过拟合，当精度经过连续数轮训练没有改善时，还要及时提前停止训练。整个网络的结构如下：
+	\begin{frame}{卷积神经网络 (Convolutional Neural Network, CNN)}{网络结构}
+		\begin{block}{为什么需要好的网络结构？}
+			\begin{minipage}{0.55\linewidth}
+				\begin{itemize}
+					\item 参数太少可能会抓不到特征
+					\item 参数太多训练很慢；
+					\item 参数太多可能会振荡，无法收敛；
+					\item 可能落入全局最优解。
+				\end{itemize}
+			\end{minipage}
+			$\Longrightarrow$ 
+			\begin{minipage}{0.3\linewidth}
+				安排合理的网络结构 \\ 减少无用参数
+			\end{minipage}
+		\end{block}
+		\begin{block}{LeNet-5}
+			\centering
+			\includegraphics[width=0.8\linewidth]{img/LeNet-5}
+		\end{block}
 	\end{frame}
-	\begin{frame}{网络结构}
+	\begin{frame}{卷积神经网络 (Convolutional Neural Network, CNN)}{网络结构}
+		\begin{itemize}
+			\item 参考了 LeNet 的网络结构；
+			\item 先进行了4次卷积+池化操作，再经过全连接层到达输出层。
+			\item 激活函数： ReLu；
+			\item 损失函数： MSE；
+			\item 优化器： Adam 。
+			\item 为了防止模型过拟合，当精度经过连续数轮训练没有改善时，还要及时提前停止训练。
+		\end{itemize}
+	\end{frame}
+	\begin{frame}{卷积神经网络 (Convolutional Neural Network, CNN)}{网络结构}
 		\centering
 		\scalebox{0.7}{\lstinputlisting[basicstyle=\fontsize{8.8pt}{9.8pt}\selectfont]{../cnn-model.txt}}
 	\end{frame}
-	\begin{frame}{训练与结果}
+	\begin{frame}{卷积神经网络 (Convolutional Neural Network, CNN)}{训练与结果}
 		\begin{block}{步骤}
 			\begin{enumerate}
 				\item 对每条光谱数据进行标准化；
@@ -257,9 +290,12 @@
 			\end{enumerate}
 		\end{block}
 		\begin{block}{训练结果}
-			相比于 SVM ， CNN 的结构更复杂，参数也更多，因此训练需要的迭代次数也更多，训练时间也更长。另外， CNN 的训练方法也意味着训练结果具有一定程度的随机性，可能需要多尝试几次才能拿到比较好的模型。
-			
-			最终模型的交叉检验结果如图\ref{fig:cnnresult}所示，其回归标准误差为0.2694，回归误差复相关系数为0.9921，优于主成分回归和支持向量回归，但与主元数较多时的偏最小二乘回归还有一定的差距。
+			\begin{itemize}
+				\item 训练速度慢于 SVR ；
+				\item 训练结果具有随机性，每次训练结果均不一样；
+				\item 回归标准误差 $SEC = 0.2694$，回归误差复相关系数 $R^2 = 0.9921$ ；
+				\item 优于 PCA 和 SVR ，与 4 主元 PLS 效果相近。
+			\end{itemize}
 		\end{block}
 	\end{frame}
 
@@ -268,7 +304,14 @@
 		\includegraphics[width=\linewidth]{../img/cnn_result}
 	\end{frame}
 	\begin{frame}
-			一般来说，神经网络需要比支持向量回归更多的训练数据，然而这里 CNN 的表现却比支持向量回归更好。这可能是由于 CNN 的卷积层相比于全连接层，能够更加有效的提取光谱的特征，大幅降低了神经网络中的参数量，使得少量数据也能够有效提取到特征。另外从原理上来看，相比于 SVM ，CNN 的塑性也更好。
+		\begin{block}{CNN 的预测效果好于 SVR，为什么？}
+			\bigskip
+			\begin{itemize}
+				\item 一般来说，神经网络需要比支持向量回归更多的训练数据；
+				\item CNN 的卷积层相比于全连接层，能够更加有效的提取光谱的特征；
+				\item 相比于 SVM，CNN 的可塑性也更好。
+			\end{itemize}
+		\end{block}
 	\end{frame}
 	\section{总结}
 	\begin{frame}{总结}
