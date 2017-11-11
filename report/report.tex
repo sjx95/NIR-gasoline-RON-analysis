@@ -7,6 +7,7 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
+\usepackage{multirow}
 \setlength{\parindent}{2em}
 \title{基于支持向量机与卷积神经网络的\\汽油辛烷值定量分析\footnote{本项目托管于\url{https://github.com/sjx95/NIR-gasoline-RON-analysis}}}
 \author{宋建勋\thanks{Email: \href{mailto:sjx95@outlook.com}{sjx95@outlook.com}} \\ \small(浙江大学, 浙江~杭州, 310027)}
@@ -244,7 +245,7 @@
 					\includegraphics[width=0.5\linewidth]{../img/svm_result_t3_c1_6}
 					\includegraphics[width=0.5\linewidth]{../img/svm_result_t3_c2}
 				\end{minipage}
-				\caption{各惩罚系数下的训练结果}
+				\caption{Sigmoid核函数在各惩罚系数下的训练结果}
 				\label{fig:svm_result_c}
 			\end{figure}
 			
@@ -252,7 +253,6 @@
 				\caption{SVM训练结果汇总}
 				\label{table:svr_result}
 				\small
-				\centering
 				\begin{tabular}{r|c|c|c|c|c|c|c|c}
 					\hline
 					\footnotesize 核函数&\footnotesize 线性&\footnotesize 多项式&\footnotesize 径向基&\multicolumn{5}{c}{Sigmoid} \\
@@ -295,7 +295,26 @@
 			一般来说，神经网络需要比支持向量回归更多的训练数据，然而这里 CNN 的表现却比支持向量回归更好。这可能是由于 CNN 的卷积层相比于全连接层，能够更加有效的提取光谱的特征，大幅降低了神经网络中的参数量，使得少量数据也能够有效提取到特征。另外从原理上来看，相比于 SVM ，CNN 的塑性也更好。
 			
 	\section{总结}
-		本文首先对获取的实验数据进行了必要的预处理，然后尝试使用了支持向量回归和卷积神经网络两种方法来构建光谱与辛烷值之间的模型，并对两者的结果进行了对比分析。支持向量机与卷积神经网络作为两种通用的模型，均较好的解决近红外光谱的分析问题，不仅达到了较为满意的精度，在继续加大数据量的同时，还有着进一步提升的空间。
+		本文首先对获取的实验数据进行了必要的预处理，然后尝试使用了支持向量回归和卷积神经网络两种方法来构建光谱与辛烷值之间的模型，其模型的预测精度汇总于表\ref{table:model-compare}。同时还对两者的结果进行了一定的对比分析。支持向量机与卷积神经网络作为两种通用的模型，均较好的解决近红外光谱的分析问题，不仅达到了较为满意的精度，在继续加大数据量的同时，还有着进一步提升的空间。
+		
+		\begin{table}
+			\caption{各模型精度对比}
+			\label{table:model-compare}
+			\small
+			\scalebox{0.82}{
+			\begin{tabular}{r|c|c|c|c|c|c|c|c||c|c}
+				\hline
+				\multicolumn{9}{c||}{SVR} & \multicolumn{1}{c|}{\multirow{3}{*}{CNN}}\\
+				\cline{1-9}
+				\footnotesize 核函数&\footnotesize 线性&\footnotesize 多项式&\footnotesize 径向基&\multicolumn{5}{c||}{Sigmoid}& \\
+				\cline{1-9}
+				\footnotesize 惩罚系数&\multicolumn{4}{c|}{$c = 1$}&0.8&1.2&1.6&2&\\
+				\hline
+				SEC&0.6540&1.1182&0.8978&0.5905&0.6306&0.5104&0.4835&0.6488&0.2694&SEC\\
+				$R^2$&0.9536&0.8643&0.9126&0.9622&0.9569&0.9717&0.9746&0.9543&0.9921&$R^2$\\
+				\hline
+			\end{tabular}}
+		\end{table}
 		
 		然而需要注意的是，作为通用的代价，训练这两种模型均需要大量的数据。由于本文仅有某台仪器某品牌油品测出的30组数据作为样本数据，尽管划分训练集和测试集后，在测试集上的预测效果不错，但拿到另一台仪器或者测试另一品牌油品时是否可靠还有待验证。而且神经网络模型相较于统计模型，其内部联系非常复杂，误差的追溯甚至难以进行，也难以给出有效的机理分析。
 		不过也正是因为这种通用性，在应用环境发生变化时，无需重新进行统计分析，只需要在原来模型的基础上，追加新的训练数据即可重新达到原有精度。
