@@ -1,4 +1,4 @@
-\documentclass[a4paper]{article}
+\documentclass[a4paper, 12pt]{article}
 \usepackage{xeCJK}
 \usepackage{hyperref}
 \usepackage{indentfirst}
@@ -8,6 +8,9 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{multirow}
+\usepackage{geometry}
+\geometry{left=2cm, right=2cm, top=2.5cm, bottom=2.5cm}
+\linespread{1.2}
 \setlength{\parindent}{2em}
 \title{基于支持向量机与卷积神经网络的\\汽油辛烷值定量分析\footnote{本项目托管于\url{https://github.com/sjx95/NIR-gasoline-RON-analysis}}}
 \author{宋建勋\thanks{Email: \href{mailto:sjx95@outlook.com}{sjx95@outlook.com}} \\ \small(浙江大学, 浙江~杭州, 310027)}
@@ -61,9 +64,9 @@
 		
 		本文使用的汽油 NIR 光谱数据如图\ref{fig:nir-data-raw}所示。
 		
-		\begin{figure}[h]
+		\begin{figure}
 			\centering
-			\includegraphics[width=\linewidth]{../img/raw}
+			\includegraphics[width=0.8\linewidth]{../img/raw}
 			\caption{原始光谱数据}
 			\label{fig:nir-data-raw}
 		\end{figure}
@@ -105,9 +108,9 @@
 				x_f(k) = a_0(k) = f_0(h)X(k)
 			\end{equation}
 			
-			\begin{figure}[h]
+			\begin{figure}
 				\centering
-				\includegraphics[width=\linewidth]{../img/filter}
+				\includegraphics[width=0.8\linewidth]{../img/filter}
 				\caption{光谱数据多项式卷积平滑结果}
 				\label{fig:filter}
 			\end{figure}
@@ -119,9 +122,9 @@
 			
 			基线校正的结果如图\ref{fig:baseline}所示，与图\ref{fig:nir-data-raw}所示的原始数据相比，各牌号汽油的光谱曲线均大致重合，较为符合实际情况。
 			
-			\begin{figure}[h]
+			\begin{figure}
 				\centering
-				\includegraphics[width=\linewidth]{../img/baseline}
+				\includegraphics[width=0.8\linewidth]{../img/baseline}
 				\caption{光谱数据基线校正结果}
 				\label{fig:baseline}
 			\end{figure}
@@ -147,7 +150,7 @@
 			
 			\begin{figure}
 				\centering
-				\includegraphics[width=\linewidth]{../img/diff}
+				\includegraphics[width=0.8\linewidth]{../img/diff}
 				\caption{光谱数据一阶微分结果}
 				\label{fig:diff}
 			\end{figure}
@@ -162,7 +165,7 @@
 			\end{equation}
 			\begin{figure}
 				\centering
-				\includegraphics[width=\linewidth]{../img/correlation}
+				\includegraphics[width=0.8\linewidth]{../img/correlation}
 				\caption{一阶微分的相关性分析}
 				\label{fig:correlation}
 			\end{figure}
@@ -227,7 +230,8 @@
 			各模型的评价指标汇总如表\ref{table:svr_result}所示。考虑到监督学习模型中，模型的精确度一定程度上依赖于训练数据量，而这里能拿到的近红外光谱数据只有30条，如果能够拿到更多的数据，模型的准确度理应还存在一定的提升空间。
 			
 			\begin{figure}
-				\begin{minipage}{\linewidth}
+				\centering
+				\begin{minipage}{0.85\linewidth}
 					\includegraphics[width=0.5\linewidth]{../img/svm_result_t0}
 					\includegraphics[width=0.5\linewidth]{../img/svm_result_t1}
 					\includegraphics[width=0.5\linewidth]{../img/svm_result_t2}
@@ -236,10 +240,9 @@
 				\caption{各类核函数训练结果}
 				\label{fig:svm_result_t}
 			\end{figure}
-		
-			
 			\begin{figure}
-				\begin{minipage}{\linewidth}
+				\centering
+				\begin{minipage}{0.85\linewidth}
 					\includegraphics[width=0.5\linewidth]{../img/svm_result_t3_c0_8}
 					\includegraphics[width=0.5\linewidth]{../img/svm_result_t3_c1_2}
 					\includegraphics[width=0.5\linewidth]{../img/svm_result_t3_c1_6}
@@ -252,12 +255,12 @@
 			\begin{table}[h]
 				\caption{SVM训练结果汇总}
 				\label{table:svr_result}
-				\small
+				\centering
 				\begin{tabular}{r|c|c|c|c|c|c|c|c}
 					\hline
-					\footnotesize 核函数&\footnotesize 线性&\footnotesize 多项式&\footnotesize 径向基&\multicolumn{5}{c}{Sigmoid} \\
+					核函数&线性&多项式&径向基&\multicolumn{5}{c}{Sigmoid} \\
 					\hline
-					\footnotesize 惩罚系数&\multicolumn{4}{c|}{$c = 1$}&0.8&1.2&1.6&2\\
+					惩罚系数&\multicolumn{4}{c|}{$c = 1$}&0.8&1.2&1.6&2\\
 					\hline
 					SEC&0.6540&1.1182&0.8978&0.5905&0.6306&0.5104&0.4835&0.6488\\
 					$R^2$&0.9536&0.8643&0.9126&0.9622&0.9569&0.9717&0.9746&0.9543\\
@@ -274,7 +277,9 @@
 			
 			这里参考 LeNet 的网络结构，首先进行了4次卷积+池化操作，然后经过全连接层到达输出层。其中，激活函数选用了 ReLu ，损失函数选用了 MSE ，优化器选用了 Adam 。为了防止模型过拟合，当精度经过连续数轮训练没有改善时，还要及时提前停止训练。整个网络的结构如下：
 			
-			\lstinputlisting[basicstyle=\fontsize{8.8pt}{9.8pt}\selectfont]{../cnn-model.txt}
+			\noindent \begin{minipage}{\linewidth}
+				\lstinputlisting[]{../cnn-model.txt}
+			\end{minipage}
 				
 
 		\subsection{训练结果与分析}
@@ -300,20 +305,20 @@
 		\begin{table}
 			\caption{各模型精度对比}
 			\label{table:model-compare}
+			\centering
 			\small
-			\scalebox{0.82}{
 			\begin{tabular}{r|c|c|c|c|c|c|c|c||c|c}
 				\hline
-				\multicolumn{9}{c||}{SVR} & \multicolumn{1}{c|}{\multirow{3}{*}{CNN}}\\
+				\multicolumn{9}{c||}{SVR} & \multicolumn{1}{c|}{\multirow{3}{*}{CNN}} \\
 				\cline{1-9}
-				\footnotesize 核函数&\footnotesize 线性&\footnotesize 多项式&\footnotesize 径向基&\multicolumn{5}{c||}{Sigmoid}& \\
+				核函数&线性&多项式&径向基&\multicolumn{5}{c||}{Sigmoid}& \\
 				\cline{1-9}
-				\footnotesize 惩罚系数&\multicolumn{4}{c|}{$c = 1$}&0.8&1.2&1.6&2&\\
+				惩罚系数&\multicolumn{4}{c|}{$c = 1$}&0.8&1.2&1.6&2& \\
 				\hline
 				SEC&0.6540&1.1182&0.8978&0.5905&0.6306&0.5104&0.4835&0.6488&0.2694&SEC\\
 				$R^2$&0.9536&0.8643&0.9126&0.9622&0.9569&0.9717&0.9746&0.9543&0.9921&$R^2$\\
 				\hline
-			\end{tabular}}
+			\end{tabular}
 		\end{table}
 		
 		然而需要注意的是，作为通用的代价，训练这两种模型均需要大量的数据。由于本文仅有某台仪器某品牌油品测出的30组数据作为样本数据，尽管划分训练集和测试集后，在测试集上的预测效果不错，但拿到另一台仪器或者测试另一品牌油品时是否可靠还有待验证。而且神经网络模型相较于统计模型，其内部联系非常复杂，误差的追溯甚至难以进行，也难以给出有效的机理分析。
